@@ -9,7 +9,7 @@ namespace meta
     template <size_t N> using make_index_list = std::make_index_sequence<N>;
 
     // type_list
-    template <typename... Ts> struct type_list {};
+    template <typename... Ts> struct type_list { static constexpr size_t size = sizeof...(Ts); };
 
     // to_type_list
     template <typename IList> struct to_type_list {};
@@ -65,15 +65,4 @@ namespace meta
     template <typename List, size_t... Idx>
     struct nth_types<List, index_list<Idx...>> { using type = type_list<nth_type_t<List, Idx>...>; };
     template <typename List, typename IList> using nth_types_t = typename nth_types<List, IList>::type;
-
-    // reverse
-    template <typename List> struct reverse {};
-    template <> struct reverse<type_list<>> { using type = type_list<>; }; // End of recursion
-    template <typename T, typename... Rest> // Recursion
-    struct reverse<type_list<T, Rest...>>
-    {
-        using type = concat_t<
-            typename reverse<type_list<Rest...>>::type, type_list<T>>;
-    };
-    template <typename List> using reverse_t = typename reverse<List>::type;
 }

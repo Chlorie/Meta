@@ -1,24 +1,24 @@
 #pragma once
 
 #include "list.h"
+#include "functional.h"
 
 namespace meta
 {
-    // apply_template
-    template <typename List, template <typename...> typename Templ> struct apply_template {};
+    // apply
+    template <typename List, template <typename...> typename Templ> struct apply {};
     template <typename... Ts, template <typename...> typename Templ>
-    struct apply_template<type_list<Ts...>, Templ> { using type = Templ<Ts...>; };
+    struct apply<type_list<Ts...>, Templ> { using type = Templ<Ts...>; };
     template <typename List, template <typename...> typename Templ>
-    using apply_template_t = typename apply_template<List, Templ>::type;
+    using apply_t = typename apply<List, Templ>::type;
 
     // size_of
-    template <typename List> struct size_of {};
-    template <typename... Ts> struct size_of<type_list<Ts...>> : size_t_t<sizeof...(Ts)> {};
-    template <typename List> constexpr size_t size_of_v = size_of<List>::value;
+    template <typename List> constexpr size_t size_of_v = List::size;
+    template <typename List> struct size_of : size_t_t<size_of_v<List>> {};
 
     // is_empty
-    template <typename T> constexpr bool is_empty_v = size_of_v<T> == 0;
-    template <typename T> struct is_empty : bool_t<is_empty_v<T>> {};
+    template <typename List> constexpr bool is_empty_v = List::size == 0;
+    template <typename List> struct is_empty : bool_t<is_empty_v<List>> {};
 
     // reduce
     template <typename List, template <typename, typename> typename Reducer> struct reduce {};
@@ -86,4 +86,13 @@ namespace meta
     template <typename List, template <typename> typename UnaryFunc>
     using transform_t = typename transform<List, UnaryFunc>::type;
 
+    // reverse
+    namespace detail
+    {
+        template <size_t N> // Reversed index sequence (from N-1 to 0)
+        using rev_ilist = to_index_list_t<transform_t<
+            to_type_list_t<make_index_list<N>>, bind_front<minus, size_t_t<N - 1>>::template result_t>>;
+    }
+    template <typename List> struct reverse : nth_types<List, detail::rev_ilist<List::size>> {};
+    template <typename List> using reverse_t = typename reverse<List>::type;
 }

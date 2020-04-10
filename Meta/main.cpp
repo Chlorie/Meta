@@ -13,9 +13,7 @@ void print_typename()
 // NOLINTNEXTLINE
 int main()
 {
-    constexpr size_t size = 100;
-    using List = meta::to_type_list_t<meta::make_index_list<size>>;
-    using List2 = meta::nth_types_t<List, meta::make_index_list<size>>;
-    print_typename<List2>();
+    using List = meta::to_type_list_t<meta::make_index_list<500>>;
+    print_typename<meta::reverse_t<List>>();
     return 0;
 }
