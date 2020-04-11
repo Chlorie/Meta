@@ -36,14 +36,14 @@ namespace meta
     // all_of
     template <typename List, template <typename> typename Predicate> struct all_of : false_t {};
     template <typename... Ts, template <typename> typename Predicate>
-    struct all_of<type_list<Ts...>, Predicate> : bool_t<(Predicate<Ts>::value&& ...)> {};
+    struct all_of<type_list<Ts...>, Predicate> : fold::logical_and<Predicate<Ts>::value...> {};
     template <typename List, template <typename> typename Predicate>
     constexpr bool all_of_v = all_of<List, Predicate>::value;
 
     // any_of
     template <typename List, template <typename> typename Predicate> struct any_of : true_t {};
     template <typename... Ts, template <typename> typename Predicate>
-    struct any_of<type_list<Ts...>, Predicate> : bool_t<(Predicate<Ts>::value || ...)> {};
+    struct any_of<type_list<Ts...>, Predicate> : fold::logical_or<Predicate<Ts>::value...> {};
     template <typename List, template <typename> typename Predicate>
     constexpr bool any_of_v = any_of<List, Predicate>::value;
 
@@ -56,7 +56,7 @@ namespace meta
     // count_if
     template <typename List, template <typename> typename Predicate> struct count_if {};
     template <typename... Ts, template <typename> typename Predicate>
-    struct count_if<type_list<Ts...>, Predicate> : size_t_t<(size_t(Predicate<Ts>::value) + ...)> {};
+    struct count_if<type_list<Ts...>, Predicate> : fold::plus<size_t(Predicate<Ts>::value)...> {};
     template <typename List, template <typename> typename Predicate>
     constexpr size_t count_if_v = count_if<List, Predicate>::value;
 
@@ -86,13 +86,30 @@ namespace meta
     template <typename List, template <typename> typename UnaryFunc>
     using transform_t = typename transform<List, UnaryFunc>::type;
 
+    // repeat
+    template <typename T, size_t N>
+    using repeat_t = transform_t<make_index_type_list<N>, bind_front<first, T>::template result_t>;
+    template <typename T, size_t N> struct repeat { using type = repeat_t<T, N>; };
+
+    // subseq
+    namespace detail
+    {
+        template <size_t Begin, size_t Size> // Index range
+        using index_range = to_index_list_t<transform_t<
+            make_index_type_list<Size>, bind_front<plus, size_t_t<Begin>>::template result_t>>;
+    }
+    template <typename List, size_t Begin, size_t Size>
+    using subseq_t = at_list_t<List, detail::index_range<Begin, Size>>;
+    template <typename List, size_t Begin, size_t Size>
+    struct subseq { using type = subseq_t<List, Begin, Size>; };
+
     // reverse
     namespace detail
     {
         template <size_t N> // Reversed index sequence (from N-1 to 0)
         using rev_ilist = to_index_list_t<transform_t<
-            to_type_list_t<make_index_list<N>>, bind_front<minus, size_t_t<N - 1>>::template result_t>>;
+            make_index_type_list<N>, bind_front<minus, size_t_t<N - 1>>::template result_t>>;
     }
-    template <typename List> struct reverse : nth_types<List, detail::rev_ilist<List::size>> {};
-    template <typename List> using reverse_t = typename reverse<List>::type;
+    template <typename List> using reverse_t = at_list_t<List, detail::rev_ilist<List::size>>;
+    template <typename List> struct reverse { using type = reverse_t<List>; };
 }

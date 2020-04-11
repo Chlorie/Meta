@@ -11,5 +11,9 @@ namespace meta
     template <auto V> using integral_t = std::integral_constant<decltype(V), V>;
     template <typename T> struct identity { using type = T; };
     template <typename T> using identity_t = typename identity<T>::type;
-    template <size_t I, typename T> struct indexed_type {};
+    template <size_t I, typename T> struct indexed_type
+    {
+        static constexpr size_t index = I;
+        using type = T;
+    };
 }

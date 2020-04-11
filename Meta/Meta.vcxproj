@@ -165,6 +165,7 @@
     <ClInclude Include="meta\common.h" />
     <ClInclude Include="meta\functional.h" />
     <ClInclude Include="meta\list.h" />
+    <ClInclude Include="meta\macros.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

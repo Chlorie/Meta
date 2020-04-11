@@ -2,7 +2,6 @@
 #include <iostream>
 
 #include "meta/algorithm.h"
-#include "meta/functional.h"
 
 template <typename T>
 void print_typename()
@@ -13,7 +12,10 @@ void print_typename()
 // NOLINTNEXTLINE
 int main()
 {
-    using List = meta::to_type_list_t<meta::make_index_list<500>>;
-    print_typename<meta::reverse_t<List>>();
+    using Rep = meta::repeat_t<void, 10000>;
+    constexpr bool v = meta::all_of_v<Rep, std::is_void>;
+    constexpr size_t c = meta::count_v<Rep, void>;
+    print_typename<Rep>();
+    std::cout << std::boolalpha << v << ' ' << c << '\n';
     return 0;
 }

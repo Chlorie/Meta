@@ -15,6 +15,7 @@ namespace meta
     template <typename IList> struct to_type_list {};
     template <size_t... Idx> struct to_type_list<index_list<Idx...>> { using type = type_list<size_t_t<Idx>...>; };
     template <typename IList> using to_type_list_t = typename to_type_list<IList>::type;
+    template <size_t N> using make_index_type_list = to_type_list_t<make_index_list<N>>;
 
     // to_index_list
     template <typename List> struct to_index_list {};
@@ -43,7 +44,7 @@ namespace meta
     template <typename T, typename... Rest> struct front<type_list<T, Rest...>> { using type = T; };
     template <typename List> using front_t = typename front<List>::type;
 
-    // nth_type
+    // at
     namespace detail
     {
         template <typename List, typename IList, size_t N> struct nth_type_impl {};
@@ -51,18 +52,18 @@ namespace meta
         struct nth_type_impl<type_list<Ts...>, index_list<Idx...>, N> : indexed_type<Idx, Ts>... {};
         template <size_t N, typename T> T nth_type_selector(const indexed_type<N, T>&);
     }
-    template <typename List, size_t N> struct nth_type {};
+    template <typename List, size_t N> struct at {};
     template <typename... Ts, size_t N>
-    struct nth_type<type_list<Ts...>, N>
+    struct at<type_list<Ts...>, N>
     {
         using type = decltype(detail::nth_type_selector<N>(
             detail::nth_type_impl<type_list<Ts...>, make_index_list<sizeof...(Ts)>, N>{}));
     };
-    template <typename List, size_t N> using nth_type_t = typename nth_type<List, N>::type;
+    template <typename List, size_t N> using at_t = typename at<List, N>::type;
 
-    // nth_types
-    template <typename List, typename IList> struct nth_types {};
+    // at_list
+    template <typename List, typename IList> struct at_list {};
     template <typename List, size_t... Idx>
-    struct nth_types<List, index_list<Idx...>> { using type = type_list<nth_type_t<List, Idx>...>; };
-    template <typename List, typename IList> using nth_types_t = typename nth_types<List, IList>::type;
+    struct at_list<List, index_list<Idx...>> { using type = type_list<at_t<List, Idx>...>; };
+    template <typename List, typename IList> using at_list_t = typename at_list<List, IList>::type;
 }

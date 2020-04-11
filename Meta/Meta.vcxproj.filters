@@ -32,5 +32,8 @@
     <ClInclude Include="meta\list.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="meta\macros.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
