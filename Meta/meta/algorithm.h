@@ -103,6 +103,9 @@ namespace meta
         constexpr size_t mismatch_impl(
             type_list<Ts...>, type_list<Us...>, std::index_sequence<Idx...>)
         {
+            // Write the fold operand "std::is_same_v<Ts, Us> ? size_t(-1) : Idx" as oper,
+            // the returned value is basically (... + min_wrapper{ oper }).value,
+            // which is simply (... min oper) if we treat the min function like an operator
             return fold::wrapped_plus_v<min_wrapper,
                 (std::is_same_v<Ts, Us> ? size_t(-1) : Idx)...>.value;
         }
