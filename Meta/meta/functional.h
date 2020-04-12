@@ -46,7 +46,7 @@ namespace meta
 #include "macros.h"
 
 #define META_DEFINE_FOLD_OP(Type, name, symbol) \
-        template <Type... Values> struct name##_direct : integral_t<(Values symbol ...)> {}; \
+        template <Type... Values> struct name##_direct : integral_t<(... symbol Values)> {}; \
         template <Type... Values> struct name : name##_direct<Values...> {}; \
         template <META_EXPAND_256(Type V), Type... Rest> \
         struct name<META_EXPAND_256(V), Rest...> : \
@@ -55,9 +55,21 @@ namespace meta
 
         META_DEFINE_FOLD_OP(auto, plus, +);
         META_DEFINE_FOLD_OP(bool, logical_and, &&);
-        META_DEFINE_FOLD_OP(bool, logical_or, ||);
+        META_DEFINE_FOLD_OP(bool, logical_or, || );
 
 #undef META_DEFINE_FOLD_OP
+
+        // Binary fold using arbitrary binary function wrapper
+        template <typename Wrapper, auto... Values>
+        struct wrapped_plus_direct : integral_t<(... + Wrapper{ Values }).value> {};
+        template <typename Wrapper, auto... Values> struct wrapped_plus :
+            wrapped_plus_direct<Wrapper, Values...> {};
+        template <typename Wrapper, META_EXPAND_256(auto V), auto... Rest>
+        struct wrapped_plus<Wrapper, META_EXPAND_256(V), Rest...> :
+            integral_t<(Wrapper{ wrapped_plus_direct<Wrapper, META_EXPAND_256(V)>::value } +
+                Wrapper{ wrapped_plus<Wrapper, Rest...>::value }).value> {};
+        template <typename Wrapper, auto... Values>
+        constexpr Wrapper wrapped_plus_v = Wrapper{ wrapped_plus<Wrapper, Values...>::value };
 
 #undef META_DEFINE_MACROS
 #include "macros.h"

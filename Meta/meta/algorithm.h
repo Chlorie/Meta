@@ -91,6 +91,38 @@ namespace meta
     using repeat_t = transform_t<make_index_type_list<N>, bind_front<first, T>::template result_t>;
     template <typename T, size_t N> struct repeat { using type = repeat_t<T, N>; };
 
+    // mismatch
+    namespace detail
+    {
+        struct min_wrapper { size_t value = 0; };
+        constexpr min_wrapper operator+(const min_wrapper lhs, const min_wrapper rhs)
+        {
+            return { lhs.value < rhs.value ? lhs.value : rhs.value };
+        }
+        template <typename... Ts, typename... Us, size_t... Idx>
+        constexpr size_t mismatch_impl(
+            type_list<Ts...>, type_list<Us...>, std::index_sequence<Idx...>)
+        {
+            return fold::wrapped_plus_v<min_wrapper,
+                (std::is_same_v<Ts, Us> ? size_t(-1) : Idx)...>.value;
+        }
+    }
+    template <typename First, typename Second> struct mismatch {};
+    template <typename... Ts, typename... Us>
+    struct mismatch<type_list<Ts...>, type_list<Us...>>
+    {
+    private:
+        template <bool V> struct unmatchable {};
+        static constexpr size_t tsize = sizeof...(Ts), usize = sizeof...(Us);
+        static constexpr size_t size = (tsize > usize ? tsize : usize) + 1;
+        using tlist = concat_t<type_list<Ts...>, repeat_t<unmatchable<false>, size - tsize>>;
+        using ulist = concat_t<type_list<Us...>, repeat_t<unmatchable<true>, size - usize>>;
+    public:
+        static constexpr size_t value = detail::mismatch_impl(
+            tlist{}, ulist{}, make_index_list<size>{});
+    };
+    template <typename First, typename Second> constexpr size_t mismatch_v = mismatch<First, Second>::value;
+
     // subseq
     namespace detail
     {

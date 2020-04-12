@@ -12,10 +12,10 @@ void print_typename()
 // NOLINTNEXTLINE
 int main()
 {
-    using Rep = meta::repeat_t<void, 10000>;
-    constexpr bool v = meta::all_of_v<Rep, std::is_void>;
-    constexpr size_t c = meta::count_v<Rep, void>;
-    print_typename<Rep>();
-    std::cout << std::boolalpha << v << ' ' << c << '\n';
+    constexpr size_t size = 5000;
+    using T = meta::repeat_t<void, size + 1>;
+    using U = meta::repeat_t<void, size>;
+    constexpr size_t res = meta::mismatch_v<T, U>;
+    std::cout << res << '\n';
     return 0;
 }
